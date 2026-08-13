@@ -1,0 +1,88 @@
+[project]
+name = "testkit"
+dynamic = ["version"]
+description = "Shared pytest fixtures and test assets for the pysmo and aimbat test suites."
+authors = [{ name = "Simon M. Lloyd", email = "simon@slloyd.net" }]
+requires-python = ">=3.12,<3.15"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering",
+  "Operating System :: OS Independent",
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
+
+[project.urls]
+Homepage = "https://github.com/pysmo/testkit"
+
+[project.entry-points.pytest11]
+testkit = "testkit.fixtures"
+
+[dependency-groups]
+dev = ["ruff>=0.13.0"]
+test = [
+  "pytest>=8.4.2",
+  "pytest-cov>=7.0.0",
+  "pytest-mpl>=0.17.0",
+  "pytest-mypy>=1.0.1",
+  "pytest-sugar>=1.1.1",
+]
+docs = []
+
+[tool.uv]
+default-groups = ["dev", "test"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/testkit"]
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "src"]
+markers = [
+  "mpl: mark tests that generate matplotlib figures",
+]
+
+[tool.mypy]
+mypy_path = "src"
+namespace_packages = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[tool.coverage.run]
+source = ["src"]
+[tool.coverage.report]
+exclude_also = [
+  "def __repr__",
+  "if TYPE_CHECKING:",
+  "class .*\\bProtocol\\):",
+  "@(abc\\.)?abstractmethod",
+]
+
+[tool.ruff]
+extend-exclude = ["docs", "site"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+section-order = [
+  "future",
+  "standard-library",
+  "third-party",
+  "pysmo-group",
+  "first-party",
+  "local-folder",
+]
+
+[tool.ruff.lint.isort.sections]
+"pysmo-group" = ["pysmo"]
