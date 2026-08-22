@@ -11,12 +11,10 @@ station across events, not just within one).
 This dataset did **not** originate here. It went through several stages,
 each in a different repo:
 
-1. **[`data-example`](https://github.com/pysmo/data-example)** fetched 10
-   candidate teleseismic events (USGS event catalogue + EarthScope
-   waveforms/response), intersected station availability across all of
-   them, and spread ~40 shared stations by latitude — so most stations
-   have multi-event coverage. See that repo's `PROVENANCE.md` for the full
-   discovery/selection methodology.
+1. An earlier stage fetched 10 candidate teleseismic events (USGS event
+   catalogue + EarthScope waveforms/response), intersected station
+   availability across all of them, and spread ~40 shared stations by
+   latitude — so most stations have multi-event coverage.
 2. Reviewed inside **AIMBAT**: narrowed 10 events → 5, then 5 → 3, and
    within each of the surviving 3 events, deselected (not deleted)
    individual seismograms during manual QC. This selection lives in an
@@ -25,12 +23,12 @@ each in a different repo:
    out of that `aimbat.db` (`aimbatseismogramparameters."select"`, joined
    through to `aimbatdatasource.sourcename`), then **`fetch_iccs_events.py`
    independently re-fetches** every file directly from USGS + EarthScope by
-   event ID and station code — it does not read `data-example`'s files.
-   `data-example` was only ever the source of the *selection* (which
+   event ID and station code — it does not read any files from the earlier
+   stage. That stage was only ever the source of the *selection* (which
    events, which stations); this package has no runtime or regeneration
-   dependency on that repo, which is still under active development.
+   dependency on it.
 
-The two events considered in `data-example`'s 5-event shortlist but
+The two events considered in the earlier 5-event shortlist but
 **not** carried forward here are `fiji_region` and `nepal` — dropped in
 the 5→3 AIMBAT review (not defective, just not chosen). Notably
 `fiji_region` was the *old* `derive_fixture.py` source for pysmo's
@@ -56,8 +54,8 @@ the ~100° P-shadow zone) and single-channel BHZ, `location="--"`.
 
 ## Window and processing
 
-Same methodology as `data-example`'s `fetch_events.py`, so re-fetching here
-reproduces what was already manually QC'd in AIMBAT:
+Same P-coda window methodology used at the earlier stage, so re-fetching
+here reproduces what was already manually QC'd in AIMBAT:
 
 - Predicted P arrival via `haversine` (epicentral distance) +
   `fetch_travel_times`.
@@ -85,9 +83,9 @@ iccs_events/
     ...
 ```
 
-One subdirectory per event (named by label, not timestamp — unlike
-`data-example`'s `Event_*` convention, since there are only 3 stable named
-events here), each containing `NETWORK.STATION.--.BHZ` SAC files. No
+One subdirectory per event (named by label, not timestamp, since there
+are only 3 stable named events here), each containing
+`NETWORK.STATION.--.BHZ` SAC files. No
 `manifest.csv` — `iccs_events_assets`'s pytest fixture (`fixtures.py`)
 discovers files by globbing each event subdirectory, keyed by event label
 then `NETWORK.STATION`.
@@ -103,8 +101,8 @@ Lives in `scripts/iccs_events/` (outside `src/`, since it depends on
 `pysmo` to do the fetching/response-removal, and this package must not
 depend on `pysmo`) but writes into this directory. Unlike
 `fetch_reference_event.py`, no separate annotation step is needed — event
-metadata and the initial P-pick are set inline during the fetch, exactly as
-`data-example`'s `fetch_events.py` does.
+metadata and the initial P-pick are set inline during the fetch, exactly
+as they were at the earlier stage.
 
 Re-running this script does **not** redo the AIMBAT selection — the
 `EVENT_STATIONS`/`STATIONS` dicts are the frozen result of that manual QC

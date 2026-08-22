@@ -5,15 +5,16 @@ with instrument response removed and an initial P-pick annotated, exactly as
 `pysmo.tools.iccs`/`aimbat` expect. The event/station selection below is
 **not** rediscovered or reselected here — it is the exact result of manual
 QC review carried out inside AIMBAT (deselecting, not deleting, seismograms
-in an `aimbat.db` project built from `../data-example`), then extracted from
-that database. See `PROVENANCE.md` (in the output directory) for the full
-history and rationale, and this repo's `HANDOFF.md`.
+in an `aimbat.db` project built from an earlier candidate-event dataset),
+then extracted from that database. See `PROVENANCE.md` (in the output
+directory) for the full history and rationale, and this repo's
+`HANDOFF.md`.
 
-This script never reads from `data-example` — it re-fetches each event and
-station independently from USGS/EarthScope by event ID and station
-code/coordinates, so testkit has no runtime or regeneration dependency on
-that repo (which may keep changing). Only the *selection* (which events,
-which stations) came from there originally.
+This script never reads from that earlier dataset — it re-fetches each
+event and station independently from USGS/EarthScope by event ID and
+station code/coordinates, so testkit has no runtime or regeneration
+dependency on it. Only the *selection* (which events, which stations) came
+from there originally.
 
 Re-run with `uv run python fetch_iccs_events.py` from this directory to
 regenerate the dataset from scratch; it writes into
@@ -48,8 +49,8 @@ OUTPUT_DIR = (
 
 USGS_EVENT_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
-# Same P-coda window formula as data-example's fetch_events.py, so
-# re-fetching here reproduces what was already manually QC'd in AIMBAT.
+# Same P-coda window formula used at the earlier stage, so re-fetching
+# here reproduces what was already manually QC'd in AIMBAT.
 MARGIN_BEFORE = pd.Timedelta(minutes=2)
 DURATION_AFTER = pd.Timedelta(minutes=3)
 
@@ -66,8 +67,9 @@ EVENTS = [
     EventSpec("iraq", "us2000bmcg"),
 ]
 
-# One shared station pool (lat/lon as discovered/curated in data-example),
-# keyed by "NET.STA" — most stations are used by more than one event.
+# One shared station pool (lat/lon as discovered/curated at the earlier
+# stage), keyed by "NET.STA" — most stations are used by more than one
+# event.
 STATIONS: dict[str, MiniStation] = {
     key: MiniStation(
         name=key.split(".")[1],
