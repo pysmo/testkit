@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 REFERENCE_EVENT_DIR = Path(__file__).parent / "assets" / "reference_event"
-"""Directory of a real IU.ANMO event recording (SAC, mseed, GeoCSV, SACPZ, StationXML).
+"""Directory of a real IU.ANMO event recording (SAC, mseed, GeoCSV, SACPZ, StationXML, QuakeML).
 
 See ``PROVENANCE.md`` in that directory for how the data was fetched.
 """
@@ -37,6 +37,7 @@ def reference_event_assets() -> dict[str, Path]:
         "sacpz_lhz": REFERENCE_EVENT_DIR / "iu_anmo_00_lhz.pz",
         "stationxml_bhz": REFERENCE_EVENT_DIR / "iu_anmo_00_bhz_response.xml",
         "stationxml_lhz": REFERENCE_EVENT_DIR / "iu_anmo_00_lhz_response.xml",
+        "quakeml": REFERENCE_EVENT_DIR / "maule_2010.quakeml",
     }
 
 

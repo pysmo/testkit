@@ -46,11 +46,55 @@ own classes (see `fetch_reference_event.py`'s docstring for why):
 - `iu_anmo_00_{bhz,lhz}.geocsv`
 - `iu_anmo_00_{bhz,lhz}_response.xml` (StationXML, `level=response`)
 - `iu_anmo_00_{bhz,lhz}.pz` (SAC PZ)
+- `maule_2010.quakeml` (QuakeML 1.2, `fdsnws-event`, `format=xml`) — event
+  metadata is not per-channel, so this is **one file for the whole bundle**,
+  not an `iu_anmo_00_{bhz,lhz}` pair. Fetched from USGS, not EarthScope (see
+  below).
 
 `iu_anmo_00_bhz.sac` is the canonical fixture used throughout the test
 suite (replacing `testfile.sac`). The LHZ set and non-SAC BHZ formats exist
 for future-proofing (e.g. a future miniSEED reader) and multi-channel
-StationXML coverage.
+StationXML coverage. `maule_2010.quakeml` exists for pysmo's QuakeML parser
+tests and the "project as code" doctest.
+
+## Event metadata (QuakeML)
+
+`maule_2010.quakeml` is the `fdsnws-event` QuakeML 1.2 document for the
+Maule mainshock, fetched from USGS
+(`https://earthquake.usgs.gov/fdsnws/event/1/query`), **not** EarthScope:
+EarthScope decommissioned its own event service
+(`service.earthscope.org/fdsnws/event` now returns HTTP 410 Gone), and USGS
+is the authoritative source for this event's `official` ANSS catalogue
+entry — the same catalogue already cited for the `iccs_events` bundle.
+
+The query is a **time-box + magnitude filter, not an event id**:
+
+```
+starttime=2010-02-27T06:00:00  endtime=2010-02-27T07:00:00  minmagnitude=8.5
+format=xml  includeallorigins=false  includeallmagnitudes=false
+includearrivals=false  nodata=404
+```
+
+QuakeML `publicID`s are not canonical across catalogues (USGS, ISC, EMSC
+each issue a different one for this same earthquake), so a reproducible
+box query is used instead. The 06:00–07:00 UTC window with
+`minmagnitude=8.5` isolates the Maule mainshock alone — no aftershock in
+that hour is anywhere near M8.5.
+
+- **One `<event>` in the document** (verified: `grep -c '<event ' maule_2010.quakeml` → 1).
+- **`publicID`** (informational only — pysmo tests must not assert its exact
+  value): `quakeml:earthquake.usgs.gov/fdsnws/event/1/query?eventid=official20100227063411530_30&format=quakeml`
+- **Fetched values** (preferred origin / magnitude): origin time
+  `2010-02-27T06:34:11.530Z`, latitude `-36.122`, longitude `-72.898`,
+  depth `22900` m (QuakeML `<depth>` is metres; `<uncertainty>` `9200`),
+  magnitude `8.8` type `mww`, event type `earthquake`, description
+  "2010 Maule, Chile Earthquake".
+
+These origin/location/depth/magnitude values are public earthquake-catalogue
+data, already used verbatim elsewhere in this bundle (the `EVENT =
+MiniEvent(...)` block in `fetch_reference_event.py`, and the event summary
+above). The document also carries `<creationInfo><creationTime>` stamps that
+change on each fetch, so the file is not byte-identical across regenerations.
 
 ## Regenerating
 
@@ -64,10 +108,13 @@ Both scripts live in `scripts/reference_event/` (outside `src/`, since they
 depend on `pysmo` to do the fetching/annotating, and this package must not
 depend on pysmo) but write into this directory.
 
-`fetch_reference_event.py` downloads everything above from
-`service.earthscope.org`. FDSN dataselect has no concept of an earthquake
-event, so the two `.sac` files come back with no `evla`/`evlo`/`evdp`/`o`
-header set. `annotate_event_metadata.sh` adds them afterwards using real
+`fetch_reference_event.py` downloads the waveform/response formats from
+`service.earthscope.org` and `maule_2010.quakeml` from
+`earthquake.usgs.gov` (one call, outside the per-channel loop). The QuakeML
+needs no annotation step — unlike the SAC files below. FDSN dataselect has
+no concept of an earthquake event, so the two `.sac` files come back with
+no `evla`/`evlo`/`evdp`/`o` header set. `annotate_event_metadata.sh` adds
+them afterwards using real
 SAC's `ch` command (not pysmo's own writer — this keeps the annotation an
 externally-produced edit rather than round-tripping through the exact code
 these fixtures are meant to help validate), using the catalogue values

@@ -36,8 +36,10 @@ def test_array_alignment(iccs_events_assets: dict[str, dict[str, Path]]) -> None
 Available fixtures:
 
 - **`reference_event_assets`** — `dict[str, Path]` keyed by format (e.g.
-  `"sac_bhz"`, `"stationxml_lhz"`). A single real event/station recording
-  (IU.ANMO, 2010-02-27 Maule, Chile) in every format EarthScope offers. See
+  `"sac_bhz"`, `"stationxml_lhz"`, `"quakeml"`). A single real event/station
+  recording (IU.ANMO, 2010-02-27 Maule, Chile) in every format EarthScope
+  offers, plus the event-level QuakeML (`"quakeml"`, one file, not
+  per-channel) from USGS `fdsnws-event`. See
   `src/testkit/assets/reference_event/PROVENANCE.md`.
 - **`iccs_events_assets`** — `dict[str, dict[str, Path]]` keyed by event label
   (`"solomon_islands"`, `"komandorskiye_ostrova"`, `"iraq"`) then by
