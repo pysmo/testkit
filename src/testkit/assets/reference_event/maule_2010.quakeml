@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<q:quakeml xmlns="http://quakeml.org/xmlns/bed/1.2" xmlns:anss="http://anss.org/xmlns/event/0.1" xmlns:catalog="http://anss.org/xmlns/catalog/0.1" xmlns:q="http://quakeml.org/xmlns/quakeml/1.2">
+ <eventParameters publicID="quakeml:earthquake.usgs.gov/fdsnws/event/1/query?starttime=2010-02-27T060000&amp;endtime=2010-02-27T070000&amp;minmagnitude=8.5&amp;format=xml&amp;includeallorigins=false&amp;includeallmagnitudes=false&amp;includearrivals=false&amp;nodata=404">
+  <event catalog:datasource="official" catalog:eventsource="official" catalog:eventid="20100227063411530_30" publicID="quakeml:earthquake.usgs.gov/fdsnws/event/1/query?eventid=official20100227063411530_30&amp;format=quakeml">
+   <description>
+    <type>earthquake name</type>
+    <text>2010 Maule, Chile Earthquake</text>
+   </description>
+   <origin catalog:datasource="official" catalog:dataid="official20100227063411530_30" catalog:eventsource="official" catalog:eventid="20100227063411530_30" publicID="quakeml:earthquake.usgs.gov/product/origin/official20100227063411530_30/official/1478119680198">
+    <time>
+     <value>2010-02-27T06:34:11.530Z</value>
+    </time>
+    <longitude>
+     <value>-72.898</value>
+    </longitude>
+    <latitude>
+     <value>-36.122</value>
+    </latitude>
+    <depth>
+     <value>22900</value>
+     <uncertainty>9200</uncertainty>
+    </depth>
+    <originUncertainty>
+     <horizontalUncertainty>0</horizontalUncertainty>
+     <preferredDescription>horizontal uncertainty</preferredDescription>
+    </originUncertainty>
+    <quality>
+     <usedStationCount>454</usedStationCount>
+     <standardError>1.09</standardError>
+     <azimuthalGap>17.8</azimuthalGap>
+    </quality>
+    <evaluationMode>manual</evaluationMode>
+    <creationInfo>
+     <agencyID>US</agencyID>
+     <creationTime>2016-11-02T20:48:00.198Z</creationTime>
+    </creationInfo>
+   </origin>
+   <magnitude catalog:datasource="official" catalog:dataid="official20100227063411530_30" catalog:eventsource="official" catalog:eventid="20100227063411530_30" publicID="quakeml:earthquake.usgs.gov/product/origin/official20100227063411530_30/official/1478119680198#magnitude">
+    <mag>
+     <value>8.8</value>
+    </mag>
+    <type>mww</type>
+    <originID>quakeml:earthquake.usgs.gov/product/origin/official20100227063411530_30/official/1478119680198</originID>
+    <evaluationMode>manual</evaluationMode>
+    <creationInfo>
+     <agencyID>official</agencyID>
+     <creationTime>2016-11-02T20:48:00.198Z</creationTime>
+    </creationInfo>
+   </magnitude>
+   <preferredOriginID>quakeml:earthquake.usgs.gov/product/origin/official20100227063411530_30/official/1478119680198</preferredOriginID>
+   <preferredMagnitudeID>quakeml:earthquake.usgs.gov/product/origin/official20100227063411530_30/official/1478119680198#magnitude</preferredMagnitudeID>
+   <type>earthquake</type>
+   <creationInfo>
+    <agencyID>official</agencyID>
+    <creationTime>2026-07-12T19:28:40.054Z</creationTime>
+   </creationInfo>
+  </event>
+  <creationInfo>
+   <creationTime>2026-08-27T23:51:52.000Z</creationTime>
+  </creationInfo>
+ </eventParameters>
+</q:quakeml>

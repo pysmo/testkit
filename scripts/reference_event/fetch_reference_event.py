@@ -1,11 +1,12 @@
-"""Fetch pysmo's reference event/station bundle from EarthScope.
+"""Fetch pysmo's reference event/station bundle.
 
 Downloads IU.ANMO (BHZ and LHZ) recording the 2010-02-27 Maule, Chile M8.8
-earthquake, in every format the EarthScope web services offer, as raw
-bytes/text — never parsed and re-serialised through pysmo's own classes.
-This keeps every fixture an independent, externally-produced ground truth,
-rather than round-tripping through the exact code the fixtures are meant to
-help validate.
+earthquake, in every format the EarthScope web services offer, plus the
+event-level QuakeML from USGS's ``fdsnws-event``, as raw bytes/text — never
+parsed and re-serialised through pysmo's own classes. This keeps every
+fixture an independent, externally-produced ground truth, rather than
+round-tripping through the exact code the fixtures are meant to help
+validate.
 
 Re-run this script (`python fetch_reference_event.py`) to regenerate the
 bundle from scratch; it writes into ``../../src/testkit/assets/reference_event``
@@ -49,6 +50,14 @@ OUTPUT_DIR = (
 # tools.web's private _EarthScopeDefaults for the URL. Only the numeric
 # retry/timeout defaults, already public in pysmo.lib.io, are reused.
 DATASELECT_URL = "https://service.earthscope.org/fdsnws/dataselect/1/query"
+
+# fdsnws/event: EarthScope decommissioned its own event service
+# (service.earthscope.org/fdsnws/event returns HTTP 410 Gone), and
+# pysmo.tools.web has no fetch_quakeml wrapper yet, so hit USGS's fdsnws/event
+# directly — same approach as DATASELECT_URL above. USGS is the authoritative
+# source for this event's "official" ANSS catalogue entry (the same catalogue
+# already cited for the iccs_events bundle).
+EVENT_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 EVENT = MiniEvent(
     latitude=-36.122,
@@ -155,6 +164,30 @@ def main() -> None:
             _extract_single_sac(sac_zip)
         )
         print(f"Fetched {label.upper()}: {starttime} to {endtime}")
+
+    # Event-level metadata: one QuakeML document for the whole bundle, not
+    # per-channel. A starttime/endtime/minmagnitude box (not an event id) so
+    # it is reproducible regardless of catalogue id scheme; the 06:00-07:00
+    # UTC / M>=8.5 window isolates the Maule mainshock alone. See PROVENANCE.md.
+    (OUTPUT_DIR / "maule_2010.quakeml").write_bytes(
+        http_get(
+            EVENT_URL,
+            {
+                "starttime": "2010-02-27T06:00:00",
+                "endtime": "2010-02-27T07:00:00",
+                "minmagnitude": "8.5",
+                "format": "xml",
+                "includeallorigins": "false",
+                "includeallmagnitudes": "false",
+                "includearrivals": "false",
+                "nodata": "404",
+            },
+            timeout_seconds=DEFAULT_TIMEOUT_SECONDS,
+            request_retries=DEFAULT_REQUEST_RETRIES,
+            retry_delay_seconds=DEFAULT_RETRY_DELAY_SECONDS,
+        )
+    )
+    print("Fetched QuakeML: maule_2010.quakeml")
 
 
 if __name__ == "__main__":
