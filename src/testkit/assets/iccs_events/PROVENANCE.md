@@ -57,8 +57,19 @@ the ~100° P-shadow zone) and single-channel BHZ, `location="--"`.
 Same P-coda window methodology used at the earlier stage, so re-fetching
 here reproduces what was already manually QC'd in AIMBAT:
 
-- Predicted P arrival via `haversine` (epicentral distance) +
-  `fetch_travel_times`.
+- Predicted P arrival **pinned** per `(event, station)` in
+  `scripts/iccs_events/predicted_p.py` — the frozen values from EarthScope's
+  `irisws-traveltime` (retired 2026), which the bundle was first cut
+  against, extracted straight back out of the committed SAC `t0` headers so
+  the table and the shipped files agree by construction. Not recomputed at
+  regen, so the bundle regenerates deterministically.
+  `tests/test_traveltime_windows.py` checks each pinned value still tracks
+  pysmo's in-house `travel_times()` solver — agreement is within a few ms
+  everywhere except `komandorskiye_ostrova`/`AV.AKRB` (14.56°), which sits
+  on a branch-crossover cusp near the lower edge of the upper-mantle
+  triplication where the two disagree by ~177 ms on which branch arrives
+  first; that one is `xfail` in the test, not a regression, and does not
+  affect the window.
 - Window: predicted P − 2 minutes to predicted P + 3 minutes.
 - Instrument response removed (`remove_response`, StationXML-derived
   `pre_filt`); SAC `idep` set to match (`vel` for velocity, etc).
@@ -98,16 +109,22 @@ python fetch_iccs_events.py
 ```
 
 Lives in `scripts/iccs_events/` (outside `src/`, since it depends on
-`pysmo` to do the fetching/response-removal, and this package must not
-depend on `pysmo`) but writes into this directory. Unlike
-`fetch_reference_event.py`, no separate annotation step is needed — event
-metadata and the initial P-pick are set inline during the fetch, exactly
-as they were at the earlier stage.
+`pysmo` to do the fetching/response-removal, and the installable package
+and its fixtures must not depend on `pysmo`) but writes into this
+directory. Unlike `fetch_reference_event.py`, no separate annotation step
+is needed — event metadata and the initial P-pick are set inline during
+the fetch, exactly as they were at the earlier stage.
 
 Re-running this script does **not** redo the AIMBAT selection — the
 `EVENT_STATIONS`/`STATIONS` dicts are the frozen result of that manual QC
 pass. If the selection itself ever needs to change, that has to happen in
 AIMBAT again first, then be re-extracted into this script.
+
+Nor does it recompute the predicted-P arrivals: those are read from
+`predicted_p.py`, which `extract_predicted_p.py` regenerates from the
+committed SAC `t0` headers. A deliberate re-cut of the bundle (new
+stations, or a decision to move the pin onto pysmo's solver) means editing
+that table by hand first.
 
 ## Licence / attribution
 

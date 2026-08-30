@@ -13,15 +13,18 @@ three existing live-network tests (`tests/tools/test_web_live.py`,
   of the Global Seismographic Network (USGS/EarthScope/NSF); its
   `restrictedStatus` is `open`.
 - **Window**: `2010-02-27T06:44:06.04Z` to `2010-02-27T07:31:59.31Z`
-  (~47.9 minutes, 57465 samples for BHZ at 20 Hz).
-  - **Start**: predicted P arrival minus 2 minutes — predicted P via
-    `haversine` (77.638° epicentral distance) + `fetch_travel_times`,
-    P ≈ 714.513 s after origin, i.e. `2010-02-27T06:46:06.04Z`, matching
-    `test_response_removal_live.py`'s convention. (Not to be confused with
-    `test_web_live.py`'s `EXPECTED_TRAVEL_TIMES = {"P": 604.654, ...}` —
-    that is a separate, hardcoded sanity-check geometry for
-    `fetch_travel_times` itself, depth=22.9 km / distance=60°, unrelated to
-    this event/station pair's actual 77.638° distance.)
+  (~47.9 minutes, 57465 samples for BHZ at 20 Hz). **Pinned**, not
+  recomputed: `fetch_reference_event.py` hardwires both timestamps
+  (`STARTTIME`/`ENDTIME`) so the bundle regenerates deterministically. The
+  derivation of each end, recorded for history:
+  - **Start**: predicted P arrival minus 2 minutes. The predicted P came
+    from EarthScope's `irisws-traveltime` service (retired 2026; the bundle
+    was first cut against it): P ≈ 714.51 s after origin at this 77.638°
+    epicentral distance / 22.9 km depth geometry, i.e.
+    `2010-02-27T06:46:06.04Z`, matching `test_response_removal_live.py`'s
+    convention. pysmo's in-house `travel_times()` now predicts the same
+    arrival to ~1 ms; `tests/test_traveltime_windows.py` checks the pinned
+    start still agrees with it within 100 ms.
   - **End**: origin time + (epicentral distance in km / 3.0 km/s) + 10
     minutes. An initial, phase-relative-only window (P − 2 min to P + 15
     min) was tried first and found inadequate: it ended before the S
@@ -105,8 +108,11 @@ python fetch_reference_event.py
 ```
 
 Both scripts live in `scripts/reference_event/` (outside `src/`, since they
-depend on `pysmo` to do the fetching/annotating, and this package must not
-depend on pysmo) but write into this directory.
+depend on `pysmo` to do the fetching/annotating, and the installable
+package and its fixtures must not depend on pysmo) but write into this
+directory. The fetch window is pinned in the script (`STARTTIME`/`ENDTIME`)
+rather than derived from a travel-time call, so regeneration needs no
+travel-time service or solver.
 
 `fetch_reference_event.py` downloads the waveform/response formats from
 `service.earthscope.org` and `maule_2010.quakeml` from
