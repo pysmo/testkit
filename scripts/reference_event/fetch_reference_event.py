@@ -28,12 +28,10 @@ from pysmo.lib.io import (
     DEFAULT_TIMEOUT_SECONDS,
     http_get,
 )
-from pysmo.tools.azdist import distance, haversine
 from pysmo.tools.web import (
     fetch_geocsvseismogram,
     fetch_sacpz,
     fetch_stationxml,
-    fetch_travel_times,
 )
 
 OUTPUT_DIR = (
@@ -59,6 +57,10 @@ DATASELECT_URL = "https://service.earthscope.org/fdsnws/dataselect/1/query"
 # already cited for the iccs_events bundle).
 EVENT_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
+# Catalogue parameters for the event the window was derived from. The fetch
+# itself is station-scoped (dataselect has no notion of an event), so this is
+# kept for provenance and as the geometry tests/test_traveltime_windows.py
+# re-checks the pinned window against.
 EVENT = MiniEvent(
     latitude=-36.122,
     longitude=-72.898,
@@ -84,6 +86,16 @@ STATIONS = {
         longitude=-106.457133,
     ),
 }
+
+# Frozen fetch window (see PROVENANCE.md). Start = predicted P arrival minus
+# 2 min; the predicted P came from EarthScope's `irisws-traveltime` (retired
+# 2026, the service the bundle was first cut against), 714.51 s after origin
+# at this 77.638 deg / 22.9 km geometry. End = origin + surface-wave train
+# (epicentral distance / 3.0 km/s) + 10 min, independent of P.
+# tests/test_traveltime_windows.py checks pysmo's travel_times() still
+# predicts P within 100 ms of the pinned start.
+STARTTIME = pd.Timestamp("2010-02-27T06:44:06.04Z")
+ENDTIME = pd.Timestamp("2010-02-27T07:31:59.31Z")
 
 
 def _fetch_raw_waveform(
@@ -118,27 +130,7 @@ def _extract_single_sac(archive_bytes: bytes) -> bytes:
 
 
 def main() -> None:
-    reference_station = STATIONS["bhz"]
-    dist_deg = haversine(EVENT, reference_station)
-    dist_km = distance(EVENT, reference_station) / 1000.0
-    travel_times = fetch_travel_times(EVENT.depth / 1000.0, dist_deg, ["P"])
-    predicted_p = EVENT.time + pd.Timedelta(seconds=travel_times["P"])
-    starttime = predicted_p - pd.Timedelta(minutes=2)
-
-    # Window end is anchored to the *origin* time via surface-wave group
-    # velocity, not to the predicted P arrival: for a large, shallow event
-    # like this one, surface waves (often the largest-amplitude phase of
-    # the whole recording) arrive tens of minutes after P, well outside any
-    # P-relative window. 3.0 km/s is a conservative (slow) bound on the
-    # fundamental-mode Rayleigh/Love dispersion train's group velocity, so
-    # this covers the full dispersed wave train, not just its fast onset;
-    # +10 minutes gives some coda after that.
-    surface_wave_seconds = dist_km / 3.0
-    endtime = (
-        EVENT.time
-        + pd.Timedelta(seconds=surface_wave_seconds)
-        + pd.Timedelta(minutes=10)
-    )
+    starttime, endtime = STARTTIME, ENDTIME
 
     for label, station in STATIONS.items():
         (OUTPUT_DIR / f"iu_anmo_00_{label}_response.xml").write_bytes(

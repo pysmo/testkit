@@ -3,7 +3,7 @@ name = "testkit"
 dynamic = ["version"]
 description = "Shared pytest fixtures and test assets for the pysmo and aimbat test suites."
 authors = [{ name = "Simon M. Lloyd", email = "simon@slloyd.net" }]
-requires-python = ">=3.12,<3.15"
+requires-python = ">=3.13,<3.15"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 classifiers = [
@@ -28,11 +28,21 @@ test = [
   "pytest-mpl>=0.17.0",
   "pytest-mypy>=1.0.1",
   "pytest-sugar>=1.1.1",
+  # Only tests/test_traveltime_windows.py imports pysmo, to check the pinned
+  # fetch windows still agree with pysmo's current tau-p solver. The fixture
+  # assets and the fixtures module itself stay pysmo-free.
+  "pysmo",
+  "pandas-stubs>=3.0.0",
 ]
 docs = []
 
 [tool.uv]
 default-groups = ["dev", "test"]
+
+[tool.uv.sources]
+# Tracks pysmo master: pysmo.tools.traveltime isn't in a PyPI release yet.
+# Drop this source once pysmo publishes one that has it.
+pysmo = { git = "https://github.com/pysmo/pysmo", branch = "master" }
 
 [tool.hatch.version]
 source = "vcs"

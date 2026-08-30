@@ -7,14 +7,20 @@ with instrument response removed and an initial P-pick annotated, exactly as
 QC review carried out inside AIMBAT (deselecting, not deleting, seismograms
 in an `aimbat.db` project built from an earlier candidate-event dataset),
 then extracted from that database. See `PROVENANCE.md` (in the output
-directory) for the full history and rationale, and this repo's
-`HANDOFF.md`.
+directory) for the full history and rationale.
 
 This script never reads from that earlier dataset — it re-fetches each
 event and station independently from USGS/EarthScope by event ID and
 station code/coordinates, so testkit has no runtime or regeneration
 dependency on it. Only the *selection* (which events, which stations) came
 from there originally.
+
+The predicted-P arrival that anchors each fetch window is pinned in
+`predicted_p.py` (frozen EarthScope `irisws-traveltime` values, extracted
+back out of the committed SAC `t0` headers), not recomputed here — so this
+script carries no travel-time logic and regenerates deterministically.
+`tests/test_traveltime_windows.py` checks the pinned values still track
+pysmo's `pysmo.tools.traveltime` solver.
 
 Re-run with `uv run python fetch_iccs_events.py` from this directory to
 regenerate the dataset from scratch; it writes into
@@ -29,6 +35,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+from predicted_p import PREDICTED_P
 
 from pysmo import MiniEvent, MiniStation
 from pysmo.classes import SAC, StationXML
@@ -39,9 +46,8 @@ from pysmo.lib.io import (
     DEFAULT_TIMEOUT_SECONDS,
     http_get,
 )
-from pysmo.tools.azdist import haversine
 from pysmo.tools.signal import remove_response
-from pysmo.tools.web import fetch_stationxml, fetch_travel_times
+from pysmo.tools.web import fetch_stationxml
 
 OUTPUT_DIR = (
     Path(__file__).parent.parent.parent / "src" / "testkit" / "assets" / "iccs_events"
@@ -49,8 +55,9 @@ OUTPUT_DIR = (
 
 USGS_EVENT_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
-# Same P-coda window formula used at the earlier stage, so re-fetching
-# here reproduces what was already manually QC'd in AIMBAT.
+# Fetch window around the pinned predicted P (see predicted_p.py): the same
+# P-coda span used at the earlier stage, so re-fetching reproduces what was
+# manually QC'd in AIMBAT.
 MARGIN_BEFORE = pd.Timedelta(minutes=2)
 DURATION_AFTER = pd.Timedelta(minutes=3)
 
@@ -251,12 +258,10 @@ def _fetch_one_event(spec: EventSpec, event: MiniEvent) -> None:
     fetched = 0
     for key in EVENT_STATIONS[spec.label]:
         station = STATIONS[key]
-        dist_deg = haversine(event, station)
+        predicted_p = pd.Timestamp(PREDICTED_P[spec.label, key])
+        starttime = predicted_p - MARGIN_BEFORE
+        endtime = predicted_p + DURATION_AFTER
         try:
-            travel_times = fetch_travel_times(event.depth / 1000.0, dist_deg, ["P"])
-            predicted_p = event.time + pd.Timedelta(seconds=travel_times["P"])
-            starttime = predicted_p - MARGIN_BEFORE
-            endtime = predicted_p + DURATION_AFTER
             sac = SAC.fetch(station=station, starttime=starttime, endtime=endtime)
             # dataselect can return a short prefix instead of erroring
             # outright when the station has a data gap partway through.
