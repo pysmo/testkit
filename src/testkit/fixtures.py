@@ -22,6 +22,12 @@ See ``PROVENANCE.md`` in that directory for the event/station list and how
 the data was fetched and curated.
 """
 
+MULTI_PHASE_EVENTS_DIR = Path(__file__).parent / "assets" / "multi_phase_events"
+"""Directory of a deep event with labelled P and pP picks (SAC BHZ, response removed).
+
+See ``PROVENANCE.md`` in that directory for the event, stations and picks.
+"""
+
 
 @pytest.fixture()
 def reference_event_assets() -> dict[str, Path]:
@@ -53,5 +59,23 @@ def iccs_events_assets() -> dict[str, dict[str, Path]]:
             for sac_file in sorted(event_dir.glob("*.BHZ"))
         }
         for event_dir in sorted(ICCS_EVENTS_DIR.iterdir())
+        if event_dir.is_dir()
+    }
+
+
+@pytest.fixture()
+def multi_phase_events_assets() -> dict[str, dict[str, Path]]:
+    """Paths to the multi-phase fixture's SAC seismograms.
+
+    Keyed by event label, then by ``NETWORK.STATION``. Each file has a P
+    pick in ``t0`` labelled ``kt0 = "P"``, and most have a pP pick in
+    ``t5`` labelled ``kt5 = "pP"``.
+    """
+    return {
+        event_dir.name: {
+            ".".join(sac_file.name.split(".")[:2]): sac_file
+            for sac_file in sorted(event_dir.glob("*.BHZ"))
+        }
+        for event_dir in sorted(MULTI_PHASE_EVENTS_DIR.iterdir())
         if event_dir.is_dir()
     }

@@ -3,7 +3,7 @@ name = "testkit"
 dynamic = ["version"]
 description = "Shared pytest fixtures and test assets for the pysmo and aimbat test suites."
 authors = [{ name = "Simon M. Lloyd", email = "simon@slloyd.net" }]
-requires-python = ">=3.13,<3.15"
+requires-python = ">=3.13,<3.16"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 classifiers = [
@@ -35,14 +35,18 @@ test = [
   "pandas-stubs>=3.0.0",
 ]
 docs = []
+# Only the fetch scripts under scripts/ use ObsPy (TauP travel times for
+# phases pysmo's solver does not cover). Not a runtime dependency, and not a
+# default group, so installing testkit never pulls it in.
+fetch = ["obspy>=1.4"]
 
 [tool.uv]
 default-groups = ["dev", "test"]
 
 [tool.uv.sources]
-# Tracks pysmo master: pysmo.tools.traveltime isn't in a PyPI release yet.
+# Tracks pysmo main: pysmo.tools.traveltime isn't in a PyPI release yet.
 # Drop this source once pysmo publishes one that has it.
-pysmo = { git = "https://github.com/pysmo/pysmo", branch = "master" }
+pysmo = { git = "https://github.com/pysmo/pysmo", branch = "main" }
 
 [tool.hatch.version]
 source = "vcs"
@@ -61,11 +65,16 @@ markers = [
 ]
 
 [tool.mypy]
-mypy_path = "src"
+mypy_path = "src:scripts/multi_phase_events"
 namespace_packages = true
 disallow_untyped_defs = true
 warn_unused_ignores = true
 warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+# Only in the `fetch` group, and untyped.
+module = ["obspy", "obspy.*"]
+ignore_missing_imports = true
 
 [tool.coverage.run]
 source = ["src"]

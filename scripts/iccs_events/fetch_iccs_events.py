@@ -234,7 +234,7 @@ def _deconvolve(sac: SAC, station: MiniStation) -> str:
     """
     seismogram = sac.seismogram
     xml = fetch_stationxml(station=station)
-    response = StationXML.from_bytes(xml, time=seismogram.begin_time)
+    response = StationXML.from_bytes(xml, time=seismogram.begin_time).response
 
     nyquist = 0.5 / seismogram.delta.total_seconds()
     stage_nyquist = min(
