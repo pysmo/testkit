@@ -8,7 +8,7 @@ Shared pytest fixtures and test assets for the [pysmo](https://github.com/pysmo/
 This package is not published to PyPI. Install it directly from GitHub, pinned to a tag:
 
 ```bash
-uv add "testkit @ git+https://github.com/pysmo/testkit@v0.1.0"
+uv add "testkit @ git+https://github.com/pysmo/testkit@v0.4.0"
 ```
 
 ## Usage
@@ -46,6 +46,11 @@ Available fixtures:
   `NETWORK.STATION`. A 3-event Alaska teleseismic array (SAC BHZ, response
   already removed) for `pysmo.tools.iccs`/AIMBAT array-alignment tests. See
   `src/testkit/assets/iccs_events/PROVENANCE.md`.
+- **`multi_phase_events_assets`** — `dict[str, dict[str, Path]]` keyed by
+  event label (`"fiji_region"`) then by `NETWORK.STATION`. A deep event
+  (434 km) with labelled P (`t0`) and pP (`t5`) picks, one station with P
+  only, for tests that process several phases of one event. See
+  `src/testkit/assets/multi_phase_events/PROVENANCE.md`.
 
 ## Development
 
