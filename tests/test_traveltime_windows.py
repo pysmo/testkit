@@ -14,8 +14,6 @@ reports; the ``iccs_events`` windows carry 2 minutes of pre-roll and the
 *documented choice*, not fixture usability.
 """
 
-from __future__ import annotations
-
 import pandas as pd
 import pytest
 

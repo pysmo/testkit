@@ -10,8 +10,6 @@ ObsPy is imported inside `obspy_taup`, so importing this module needs no
 ObsPy. It is in testkit's `fetch` dependency group only.
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping, Sequence
 
 import pandas as pd

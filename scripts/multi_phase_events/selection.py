@@ -6,8 +6,6 @@ Fiji stations, spread over the distance range (72 to 90 deg). Each
 records P and pP, except `PHASE_EXCEPTIONS`.
 """
 
-from __future__ import annotations
-
 from pysmo import MiniStation
 
 EVENT_LABEL = "fiji_region"

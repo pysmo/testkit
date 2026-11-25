@@ -7,8 +7,6 @@ regeneration, which reads the pinned table instead:
     cd scripts/multi_phase_events && uv run --group fetch python pin_arrivals.py
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 

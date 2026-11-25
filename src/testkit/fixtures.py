@@ -28,6 +28,22 @@ MULTI_PHASE_EVENTS_DIR = Path(__file__).parent / "assets" / "multi_phase_events"
 See ``PROVENANCE.md`` in that directory for the event, stations and picks.
 """
 
+THREE_COMPONENT_EVENTS_DIR = Path(__file__).parent / "assets" / "three_component_events"
+"""Directory of three events on three components, plus files with one property each.
+
+See ``PROVENANCE.md`` in that directory for the events, sites, picks and
+the files under ``special/``.
+"""
+
+
+def _sites(directory: Path) -> dict[str, dict[str, Path]]:
+    """Files in `directory` keyed by ``NETWORK.STATION.LOCATION``, then by suffix."""
+    sites: dict[str, dict[str, Path]] = {}
+    for path in sorted(p for p in directory.iterdir() if p.is_file()):
+        key, suffix = path.name.rsplit(".", 1)
+        sites.setdefault(key, {})[suffix] = path
+    return sites
+
 
 @pytest.fixture()
 def reference_event_assets() -> dict[str, Path]:
@@ -78,4 +94,28 @@ def multi_phase_events_assets() -> dict[str, dict[str, Path]]:
         }
         for event_dir in sorted(MULTI_PHASE_EVENTS_DIR.iterdir())
         if event_dir.is_dir()
+    }
+
+
+@pytest.fixture()
+def three_component_events_assets() -> dict[str, dict[str, dict[str, dict[str, Path]]]]:
+    """Paths to the three-component fixture's files.
+
+    ``"events"`` is keyed by event label, ``"special"`` by the property its
+    files have (``"missing_orientation"``, ``"p_on_all_channels"``,
+    ``"rotated_as_bhn"``, ``"reference_rt"``, ``"multiplexed"``,
+    ``"gappy"``). Below that, both are keyed by ``NETWORK.STATION.LOCATION``
+    and then by channel code (``"BHZ"``) or, for miniSEED and StationXML,
+    by file suffix (``"mseed"``, ``"xml"``).
+    """
+    return {
+        group: {
+            directory.name: _sites(directory)
+            for directory in sorted(root.iterdir())
+            if directory.is_dir() and directory.name != "special"
+        }
+        for group, root in (
+            ("events", THREE_COMPONENT_EVENTS_DIR),
+            ("special", THREE_COMPONENT_EVENTS_DIR / "special"),
+        )
     }

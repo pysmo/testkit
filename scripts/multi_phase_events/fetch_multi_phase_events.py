@@ -12,8 +12,6 @@ current working directory:
     cd scripts/multi_phase_events && uv run python fetch_multi_phase_events.py
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pandas as pd
