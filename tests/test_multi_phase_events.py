@@ -5,8 +5,6 @@ and still agree with the travel-time backends within 100 ms. The pP check
 needs ObsPy (testkit's `fetch` group) and is skipped without it.
 """
 
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 
