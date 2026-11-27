@@ -1,11 +1,12 @@
 # Three-component fixture: orientation, several channels per station, rotation
 
 Three teleseismic events recorded on three components by Alaska broadband
-stations, plus a `special/` directory of files that each have one property
-a test needs. It serves tests of orientation, several channels and
-location codes at one station, mixed sampling rates, rotation to R/T,
-miniSEED with several channels or a gap, and the checks that refuse
-ambiguous data.
+stations, a `special/` directory of files that each have one property a
+test needs, and a `prepared/` copy of the events rotated to Z/T and
+Z/L/Q/T with every pick on every channel. It serves tests of orientation,
+several channels and location codes at one station, mixed sampling rates,
+rotation to R/T and L/Q/T, miniSEED with several channels or a gap,
+choosing a phase's channels, and the checks that refuse ambiguous data.
 
 Fetched by `scripts/three_component_events/fetch_three_component_events.py`
 from the pinned table in `three_component_arrivals.py`, written by
@@ -93,6 +94,28 @@ clockwise from R. This handles horizontals that are not at 0 and 90 deg
 (`AK.CCB`, `IU.COLA.00`). `tests/test_three_component_events.py` checks it
 against `pysmo.tools.components.rotate_to_rt`.
 
+## `prepared/`
+
+The event directories' sites again, as data are commonly prepared before
+ingestion: the horizontals rotated with pysmo, and every pick of a site on
+every channel of the site. Written from the shipped files by
+`prepare_three_component_events.py`, with no download.
+
+| Event | Channels of each band |
+|---|---|
+| `fiji_region`, `solomon_islands` | Z and T (`rotate_to_rt`) |
+| `central_peru` | Z, L, Q and T (`rotate_to_lqt`) |
+
+Each band of a site (BH, and LH at `AK.PAX`) is rotated on its own, from
+its Z and its two horizontals (N/E or 1/2) with their own orientations, at
+the back azimuth from the site to the event. The SKS incidence angle comes
+from ObsPy's TauP (iasp91, at the receiver, not corrected for the free
+surface). A rotated file is a copy of the band's Z with the rotated data,
+channel code and orientation: T at the back azimuth + 270 deg, dip 0; L
+and Q at the back azimuth + 180 deg, dips `incidence - 90` and
+`incidence`. `tests/test_three_component_events.py` checks the channels,
+the picks and Q against `-Z sin(i) + R cos(i)`.
+
 ## Regenerating
 
 ```sh
@@ -100,7 +123,11 @@ cd scripts/three_component_events
 uv run --group fetch python pin_three_component_arrivals.py  # only to re-cut
 uv run ruff format three_component_arrivals.py
 uv run python fetch_three_component_events.py
+uv run --group fetch python prepare_three_component_events.py
 ```
+
+`fetch_three_component_events.py` removes every subdirectory, `prepared/`
+included, so `prepare_three_component_events.py` runs after it.
 
 Pinning needs the `fetch` group (ObsPy's TauP for pP and SKS); fetching
 does not. `tests/test_three_component_events.py` checks that every selected

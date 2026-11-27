@@ -8,7 +8,7 @@ Shared pytest fixtures and test assets for the [pysmo](https://github.com/pysmo/
 This package is not published to PyPI. Install it directly from GitHub, pinned to a tag:
 
 ```bash
-uv add "testkit @ git+https://github.com/pysmo/testkit@v0.4.0"
+uv add "testkit @ git+https://github.com/pysmo/testkit@v0.6.0"
 ```
 
 ## Usage
@@ -52,15 +52,18 @@ Available fixtures:
   only, for tests that process several phases of one event. See
   `src/testkit/assets/multi_phase_events/PROVENANCE.md`.
 - **`three_component_events_assets`** —
-  `dict[str, dict[str, dict[str, dict[str, Path]]]]`. `"events"` is keyed by
-  event label (`"fiji_region"`, `"central_peru"`, `"solomon_islands"`),
-  `"special"` by the one property its files have (`"missing_orientation"`,
-  `"p_on_all_channels"`, `"rotated_as_bhn"`, `"reference_rt"`,
-  `"multiplexed"`, `"gappy"`); both then by `NETWORK.STATION.LOCATION` and by
-  channel code, or by `"mseed"`/`"xml"` for miniSEED and StationXML.
-  Three-component SAC with orientation and labelled P, pP, S and SKS picks,
-  several location codes and sampling rates at one station, and reference
-  R/T traces. See `src/testkit/assets/three_component_events/PROVENANCE.md`.
+  `dict[str, dict[str, dict[str, dict[str, Path]]]]`. `"events"` and
+  `"prepared"` are keyed by event label (`"fiji_region"`, `"central_peru"`,
+  `"solomon_islands"`), `"special"` by the one property its files have
+  (`"missing_orientation"`, `"p_on_all_channels"`, `"rotated_as_bhn"`,
+  `"reference_rt"`, `"multiplexed"`, `"gappy"`); all then by
+  `NETWORK.STATION.LOCATION` and by channel code, or by `"mseed"`/`"xml"`
+  for miniSEED and StationXML. Three-component SAC with orientation and
+  labelled P, pP, S and SKS picks, several location codes and sampling rates
+  at one station, and reference R/T traces. `"prepared"` has the same sites
+  rotated to Z/T (Fiji, Solomon Islands) and Z/L/Q/T (Peru) with every pick
+  on every channel. See
+  `src/testkit/assets/three_component_events/PROVENANCE.md`.
 
 ## Development
 

@@ -101,21 +101,24 @@ def multi_phase_events_assets() -> dict[str, dict[str, Path]]:
 def three_component_events_assets() -> dict[str, dict[str, dict[str, dict[str, Path]]]]:
     """Paths to the three-component fixture's files.
 
-    ``"events"`` is keyed by event label, ``"special"`` by the property its
-    files have (``"missing_orientation"``, ``"p_on_all_channels"``,
-    ``"rotated_as_bhn"``, ``"reference_rt"``, ``"multiplexed"``,
-    ``"gappy"``). Below that, both are keyed by ``NETWORK.STATION.LOCATION``
-    and then by channel code (``"BHZ"``) or, for miniSEED and StationXML,
-    by file suffix (``"mseed"``, ``"xml"``).
+    ``"events"`` and ``"prepared"`` are keyed by event label, ``"special"``
+    by the property its files have (``"missing_orientation"``,
+    ``"p_on_all_channels"``, ``"rotated_as_bhn"``, ``"reference_rt"``,
+    ``"multiplexed"``, ``"gappy"``). ``"prepared"`` holds the same sites as
+    ``"events"`` with the horizontals rotated (Z and T, or Z, L, Q and T)
+    and every pick of a site on every channel. Below that, all are keyed by
+    ``NETWORK.STATION.LOCATION`` and then by channel code (``"BHZ"``) or,
+    for miniSEED and StationXML, by file suffix (``"mseed"``, ``"xml"``).
     """
     return {
         group: {
             directory.name: _sites(directory)
             for directory in sorted(root.iterdir())
-            if directory.is_dir() and directory.name != "special"
+            if directory.is_dir() and directory.name not in {"special", "prepared"}
         }
         for group, root in (
             ("events", THREE_COMPONENT_EVENTS_DIR),
             ("special", THREE_COMPONENT_EVENTS_DIR / "special"),
+            ("prepared", THREE_COMPONENT_EVENTS_DIR / "prepared"),
         )
     }
