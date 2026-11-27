@@ -188,3 +188,63 @@ def test_gappy() -> None:
     files = next(iter(_sites(SPECIAL / "gappy").values()))
     channels = [segment.channel for segment in MSeed.all_from_file(files["mseed"])]
     assert len(channels) > len(set(channels))
+
+
+PREPARED = THREE_COMPONENT_EVENTS_DIR / "prepared"
+_ROTATED = {"fiji_region": "T", "solomon_islands": "T", "central_peru": "LQT"}
+
+
+@pytest.mark.parametrize("label", sorted(EVENTS))
+def test_prepared_channels(label: str) -> None:
+    """Each band of a site is Z plus T, or Z plus L, Q and T."""
+    shipped = _sites(THREE_COMPONENT_EVENTS_DIR / label)
+    prepared = _sites(PREPARED / label)
+    assert prepared.keys() == shipped.keys()
+    for key, channels in shipped.items():
+        bands = {channel[:2] for channel in channels}
+        expected = {band + c for band in bands for c in "Z" + _ROTATED[label]}
+        assert set(prepared[key]) == expected, key
+
+
+@pytest.mark.parametrize("label", sorted(EVENTS))
+def test_prepared_picks_on_every_channel(label: str) -> None:
+    """Every pick of a site is on every prepared channel of the site."""
+    for key, channels in _sites(PREPARED / label).items():
+        for channel, path in channels.items():
+            sac = SAC.from_file(path)
+            for phase in EVENTS[label].phases:
+                header = PICK_HEADERS[phase]
+                time = getattr(sac.timestamps, header)
+                pinned = pd.Timestamp(PINNED_ARRIVALS[label][key][phase])
+                assert abs(time - pinned) < pd.Timedelta(milliseconds=1), (
+                    f"{key}.{channel}: {phase}"
+                )
+                assert getattr(sac.native, f"k{header}").strip() == phase
+
+
+@pytest.mark.parametrize("key", sorted(_sites(PREPARED / "central_peru")))
+def test_prepared_q_is_rotated_from_z_and_r(key: str) -> None:
+    """Q = -Z sin(i) + R cos(i), with R from the shipped horizontals and i from Q's dip."""
+    shipped = {
+        channel: SAC.from_file(path)
+        for channel, path in _sites(THREE_COMPONENT_EVENTS_DIR / "central_peru")[
+            key
+        ].items()
+    }
+    vertical = next(sac for c, sac in shipped.items() if not is_horizontal(c))
+    baz = backazimuth(vertical.event, vertical.station)
+    radial = sum(
+        np.asarray(sac.seismogram.data)
+        * np.cos(np.radians(sac.orientation.azimuth - (baz + 180)))
+        for c, sac in shipped.items()
+        if is_horizontal(c)
+    )
+    prepared = _sites(PREPARED / "central_peru")[key]
+    q = SAC.from_file(prepared[vertical.station.channel[:2] + "Q"])
+    incidence = np.radians(q.orientation.dip)
+    z = np.asarray(vertical.seismogram.data)
+    expected = -z * np.sin(incidence) + radial * np.cos(incidence)
+    assert q.orientation.azimuth == pytest.approx((baz + 180) % 360, abs=1e-3)
+    np.testing.assert_allclose(
+        q.seismogram.data, expected, atol=1e-4 * np.max(np.abs(expected))
+    )

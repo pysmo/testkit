@@ -6,8 +6,9 @@ solver covers P and S but not depth or core phases, so pP and SKS come from
 ObsPy's TauP for now. Moving them to pysmo once its solver covers them means
 changing their entries in `PHASE_BACKENDS` and re-pinning.
 
-ObsPy is imported inside `obspy_taup`, so importing this module needs no
-ObsPy. It is in testkit's `fetch` dependency group only.
+ObsPy is imported inside `obspy_taup` and `incidence_angle`, so importing
+this module needs no ObsPy. It is in testkit's `fetch` dependency group
+only.
 """
 
 from collections.abc import Mapping, Sequence
@@ -45,6 +46,29 @@ def obspy_taup(
         if arrival.name in phases and arrival.name not in times:
             times[arrival.name] = pd.Timedelta(seconds=arrival.time)
     return times
+
+
+def incidence_angle(*, depth: float, distance: float, phase: str) -> float:
+    """Incidence angle of a phase's first arrival, in degrees from the vertical.
+
+    The angle at the receiver in the model, from ObsPy's TauP: the true
+    incidence, not the apparent one at the free surface. Needs testkit's
+    `fetch` dependency group. pysmo's solver gives travel times only.
+
+    Raises:
+        ValueError: If there is no arrival of `phase`.
+    """
+    from obspy.taup import TauPyModel
+
+    arrivals = TauPyModel(model=MODEL).get_travel_times(
+        source_depth_in_km=depth / 1000.0,
+        distance_in_degree=distance,
+        phase_list=[phase],
+    )
+    for arrival in arrivals:
+        if arrival.name == phase:
+            return float(arrival.incident_angle)
+    raise ValueError(f"no {phase} arrival at {distance:.2f} deg")
 
 
 PHASE_BACKENDS: dict[str, TravelTimeBackend] = {
