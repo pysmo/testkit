@@ -281,6 +281,7 @@ def _fetch_one_event(spec: EventSpec, event: MiniEvent) -> None:
         sac.event.depth = event.depth
         sac.event.time = event.time
         sac.timestamps.t0 = predicted_p  # initial pick, for ICCS-style workflows
+        sac.native.kt0 = "P"
 
         filename = f"{station.network}.{station.name}.--.BHZ"
         sac.write(event_dir / filename)

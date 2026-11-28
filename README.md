@@ -44,7 +44,7 @@ Available fixtures:
 - **`iccs_events_assets`** — `dict[str, dict[str, Path]]` keyed by event label
   (`"solomon_islands"`, `"komandorskiye_ostrova"`, `"iraq"`) then by
   `NETWORK.STATION`. A 3-event Alaska teleseismic array (SAC BHZ, response
-  already removed) for `pysmo.tools.iccs`/AIMBAT array-alignment tests. See
+  already removed, labelled P pick in `t0`) for `pysmo.tools.iccs`/AIMBAT array-alignment tests. See
   `src/testkit/assets/iccs_events/PROVENANCE.md`.
 - **`multi_phase_events_assets`** — `dict[str, dict[str, Path]]` keyed by
   event label (`"fiji_region"`) then by `NETWORK.STATION`. A deep event

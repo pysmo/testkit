@@ -77,7 +77,7 @@ here reproduces what was already manually QC'd in AIMBAT:
   predicted P).
 - `evla`/`evlo`/`evdp`/`o` set from the (independently re-fetched) USGS
   event metadata; `t0` set to the predicted P arrival, as an initial pick
-  for ICCS-style workflows.
+  for ICCS-style workflows, with `kt0` set to `P`.
 
 ## Files
 
